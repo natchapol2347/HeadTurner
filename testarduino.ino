@@ -1,16 +1,22 @@
+#include <string.h>
+#include "SerialTransfer.h"
 
-int incoming[8];
 
+SerialTransfer myTransfer;
+unsigned long lastReceiveTime = 0;
+unsigned long currentTime = 0;
+int motorA = 9;
+int motorB = 10;
 struct data_package
 {
   int go_x;
   int go_y ;
   int turn_x ;
   int turn_y ;
-  int square;
-  int x;
-  int o;
-  int triangle;   
+  bool square;
+  bool x;
+  bool o;
+  bool triangle;   
 };
 
 data_package data;
@@ -18,40 +24,61 @@ data_package data;
 
 void setup() 
 {
-  Serial.begin(9600); // set the baud rate
+  Serial.begin(9600);
+  myTransfer.begin(Serial);
   Serial.println("Ready"); // print "Ready" once
-  pinMode(8, OUTPUT);
+  pinMode(9, OUTPUT);
+  pinMode(10,OUTPUT);
   
 
 }
 void loop() 
-{
-  checkEVENT();
- if(data.go_x>=128)
+{ 
+
+  // Check whether we keep receving data, or we have a connection between the two modules
+  currentTime = millis();
+  checkEvent();
+  if ( currentTime - lastReceiveTime > 1000 ) 
+  { // If current time is more then 1 second since we have recived the last data, that means we have lost connection
+    resetData(); // If connection is lost, reset the data.
+  }
+ 
+  
+ if(data.go_x>=150 )
  {
-  digitalWrite(8, HIGH);
+
+  analogWrite(motorA, (data.go_x-150)*2);
+  analogWrite(motorB, 0);
+ }
+ else if(data.go_x<110 )
+ {
+  analogWrite(motorA, 0);
+  analogWrite(motorB, (110-data.go_x)*2);
  }
  else
  {
-  digitalWrite(8, LOW);
+  analogWrite(motorA, 0);
+  analogWrite(motorB, 0);
+
  }
- 
- delay(100);
+
+
+    
+  
+
 }
 
-void checkEVENT()
+void checkEvent()
 {
-   if(Serial.available()>0)
-  { // only send data back if data has been sent
-//    digitalWrite(8, HIGH);
-   for (int i = 0; i < 8; i++)
-   {
-    incoming[i] = Serial.read(); // read the incoming data
-   }
-   data={incoming[0],incoming[1],incoming[2],incoming[3],incoming[4],incoming[5],incoming[6],incoming[7]}; 
-//   Serial.println(data.go_x);
-   Serial.println(incoming[0]);
+    if(myTransfer.available())
+  {
+    myTransfer.rxObj(data);
+    lastReceiveTime = millis();
   }
-  
-  delay(10); // delay for 1/10 of a second
+
+}
+
+void resetData()
+{
+  data={127,127,127,127,false,false,false,false};
 }
