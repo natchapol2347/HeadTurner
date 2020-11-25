@@ -19,8 +19,8 @@ step = [[1, 0, 0, 0],
 x_step = 0
 while True:
     for j in range(4):
-        #GPIO.output(used_pin[j], i[j])
-        print(used_pin[j], step[i][j])
+        #GPIO.output(used_pin[x_step], i[j])
+        print(used_pin[j], step[x_step][j])
     x_step += 1
     if x_step == 8:
         x_step = 0
