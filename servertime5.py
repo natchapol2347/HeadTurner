@@ -13,7 +13,7 @@ from pySerialTransfer import pySerialTransfer as txfer
 # buttons=[]
 
 
-async def echo(websocket, path):
+async def start_server(websocket, path):
     
     global go_x,go_y,turn_x,turn_y,square,x,o,triangle
     go_x=0
@@ -81,45 +81,73 @@ def bool_convert(value):
     else:
         # print('yay)')
         return False
+
+import socket
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
+
+#Display IP on LCD for Pi
+# from RPLCD import CharLCD
+# import fcntl
+
+# lcd = CharLCD(cols=16, rows=2, pin_rs=37, pin_e=35, pins_data=[33, 31, 29, 23])
+
+# def get_ip_address(ifname):
+#     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#     return socket.inet_ntoa(fcntl.ioctl(
+#         s.fileno(),
+#         0x8915, 
+#         struct.pack('256s', ifname[:15])
+#     )[20:24])
+
+# lcd.write_string("IP Address:") 
+
+# lcd.cursor_pos = (1, 0)
+# lcd.write_string(get_ip_address('wlan0')   
+    
+    
+    
+if __name__ == "__main__":
+    
+    try:
         
-    
-    
-    
-    
-    
-    
-    
-    
+        start_server = websockets.serve(start_server, get_ip(), 8765)
 
-try:
-    
-    start_server = websockets.serve(echo, "10.100.4.128", 8765)
+        link=txfer.SerialTransfer('COM7',9600)
+        link.open()
+        time.sleep(2) # allow some time for the Arduino to completely reset
 
-    link=txfer.SerialTransfer('COM7',9600)
-    link.open()
-    time.sleep(2) # allow some time for the Arduino to completely reset
+        asyncio.get_event_loop().run_until_complete(start_server)
+        
 
-    asyncio.get_event_loop().run_until_complete(start_server)
-    
+        asyncio.get_event_loop().run_forever()
+    except ConnectionError:
+        print("Disconnected")
+    except KeyboardInterrupt:
+        try:
+            link.close()
+        except:
+            pass
 
-    asyncio.get_event_loop().run_forever()
-except ConnectionError:
-    print("Disconnected")
-except KeyboardInterrupt:
-    try:
-        link.close()
     except:
-        pass
+        import traceback
+        traceback.print_exc()
+        
+        try:
+            link.close()
+        except:
+            pass
 
-except:
-    import traceback
-    traceback.print_exc()
-    
-    try:
+    finally:
         link.close()
-    except:
-        pass
-
-finally:
-    link.close()
-    print("Unpaired")
+        print("Unpaired")
