@@ -11,7 +11,7 @@ import threading
 
 async def start_server(websocket, path):
     global ser
-    ser = serial.Serial('COM6', 9600, timeout=1)
+    ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
     global go_x,go_y,turn_x,turn_y,square,x,o,triangle
     go_x=0
     go_y=0
@@ -117,6 +117,7 @@ def get_ip():
     
 
 try:
+    time.sleep(5)
 
     start_server = websockets.serve(start_server, get_ip(), 8765)
 
