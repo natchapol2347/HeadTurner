@@ -6,7 +6,7 @@ import time
 import websockets
 import struct
 import threading
-
+import lcddriver
 
 
 async def start_server(websocket, path):
@@ -118,6 +118,11 @@ def get_ip():
 
 try:
     time.sleep(5)
+    
+    display = lcddriver.lcd()
+    
+    display.lcd_display_string("HeadTurner rollout!", 1) 
+    display.lcd_display_string(get_ip(), 3)
 
     start_server = websockets.serve(start_server, get_ip(), 8765)
 
@@ -126,7 +131,8 @@ try:
     
 
     asyncio.get_event_loop().run_forever()
-except ConnectionError:
+except ConnectionError or KeyboardInterrupt:
     print("Disconnected")
 finally:
+    display.lcd_clear()
     print("Unpaired")
