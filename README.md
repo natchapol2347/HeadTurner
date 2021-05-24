@@ -7,3 +7,5 @@ Other dependencies:
 - websockets
 - asyncio
 - pyserial
+
+Video: https://www.youtube.com/watch?v=mM2B4VKwM_M
